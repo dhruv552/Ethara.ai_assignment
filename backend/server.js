@@ -56,7 +56,9 @@ const PORT = parseInt(process.env.PORT, 10) || 5001;
 (async () => {
     try {
         await connectDB();
-        await seed();
+        if (process.env.NODE_ENV !== "production") {
+            await seed();
+        }
         app.listen(PORT, "0.0.0.0", () =>
             console.log(`[api] running on http://0.0.0.0:${PORT}`)
         );
