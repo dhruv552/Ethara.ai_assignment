@@ -1,0 +1,37 @@
+{
+  "summary": "Frontend regression after restructure (api/axios.js, ThemeContext, Sidebar with theme-toggle, Tasks.jsx replacing ProjectDetail.jsx) and dark-mode addition. All critical flows pass: admin/member login, dashboard stats (4 cards), projects list, create-project modal, project detail (3-column task board, members panel with add/remove, delete-task icons, status pills, NEW TASK), member role correctly hides open-create-project on /projects (count=0), logout (desktop & mobile). Dark mode toggle works on both [data-testid=theme-toggle] (desktop) and [data-testid=theme-toggle-mobile] (mobile): sets document.documentElement[data-theme] to dark/light, persists to localStorage key 'ttm_theme', and survives reload. Both light and dark renders are legible (no white-on-white / dark-on-dark detected by luminance check). Backend was not retested per main agent instruction (no API changes); iteration_1 had 24/24 pytest passes.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "Tasks (project detail) AddMemberRow", "issues": ["Pre-existing dev-only React hydration warning '<span> cannot be a child of <option>' surfaces in console when the user-select dropdown renders; caused by dev instrumentation, not user-visible. Same as iteration_1."]}
+    ]
+  },
+  "test_report_links": [
+    "/app/backend/tests/backend_test.py",
+    "/app/test_reports/pytest/pytest_results.xml",
+    "/app/test_reports/iteration_1.json"
+  ],
+  "action_items": [
+    "Optional: silence the dev-only <option><span> hydration warning (carryover from iteration_1).",
+    "No code action required for dark mode — implementation is correct and persistent."
+  ],
+  "critical_code_review_comments": [
+    "ThemeContext.jsx is clean: single source of truth, useEffect writes both DOM attribute and localStorage, SSR-safe initial state.",
+    "App.js order is correct — ThemeProvider wraps AuthProvider (theme should not depend on auth).",
+    "Sidebar.jsx exposes both theme-toggle (desktop) and theme-toggle-mobile data-testids — good for testability.",
+    "api/axios.js correctly uses process.env.REACT_APP_BACKEND_URL with /api prefix, no hardcoded URL.",
+    "Tasks.jsx contains both AddMemberRow and the task board; consider splitting once it grows >700 lines.",
+    "CSS uses var(--ttm-*) tokens consistently in dark mode; legacy hex utility overrides via [data-theme=dark] are working — verified visually.",
+    "Frontend stores JWT in localStorage 'ttm_token' (acceptable for MVP)."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "skipped this iteration (24/24 in iteration_1)", "frontend": "100% of planned regression flows"},
+  "test_credentials": "admin@example.com/admin123, member@example.com/member123 — both verified.",
+  "seed_data_creation": "None this iteration; reused 'Website Relaunch' and 'UI_TEST_Project' seeded earlier.",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Dark mode toggle works on both desktop ([data-testid=theme-toggle]) and mobile ([data-testid=theme-toggle-mobile]) — sets html[data-theme] and persists to localStorage 'ttm_theme'. Theme persists across reloads. Member account currently has 0 visible projects (was removed during prior testing) — re-add via admin UI if you need to test member-on-project-detail role hiding (verified working in iteration_1: OCT/DT/RM/AMS all 0). Backend untouched since iteration_1; pytest suite at /app/backend/tests/backend_test.py.",
+  "rca of the issue": "N/A — no unresolved issues."
+}

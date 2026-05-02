@@ -1,0 +1,95 @@
+{
+  "theme": "light",
+  "archetype": "Archetype 4: Swiss & High-Contrast",
+  "design_philosophy": "Swiss Brutalist SaaS. Extreme clarity, architectural precision, exposed grids. 95% of the UI is monochrome. Color is strictly functional (Signal Red for alerts/actions, Klein Blue for active states). Generous padding mixed with dense, hard-edged bento grids.",
+  "colors": {
+    "background": "#F4F4F5",
+    "surface": "#FFFFFF",
+    "surface_secondary": "#E4E4E7",
+    "text_primary": "#09090B",
+    "text_secondary": "#52525B",
+    "border": "#D4D4D8",
+    "border_heavy": "#09090B",
+    "primary": "#0033CC", 
+    "primary_hover": "#002299",
+    "accent": "#FF2A2A",
+    "accent_hover": "#CC0000",
+    "status": {
+      "todo": "#FFFFFF",
+      "todo_text": "#09090B",
+      "in_progress": "#0033CC",
+      "in_progress_text": "#FFFFFF",
+      "done": "#09090B",
+      "done_text": "#FFFFFF",
+      "overdue": "#FF2A2A",
+      "overdue_text": "#FFFFFF"
+    }
+  },
+  "typography": {
+    "fonts": {
+      "heading": "Chivo, sans-serif",
+      "body": "IBM Plex Sans, sans-serif",
+      "mono": "IBM Plex Mono, monospace"
+    },
+    "scale": {
+      "h1": "text-4xl sm:text-5xl lg:text-6xl tracking-tighter font-black",
+      "h2": "text-2xl sm:text-3xl lg:text-4xl tracking-tight font-bold",
+      "h3": "text-xl sm:text-2xl tracking-tight font-semibold",
+      "h4": "text-base font-bold uppercase tracking-[0.05em]",
+      "body": "text-base leading-relaxed font-normal",
+      "mono_label": "text-xs font-mono uppercase tracking-[0.1em]"
+    }
+  },
+  "layout": {
+    "spacing": "Generous spacing strategy for containers (p-8 to p-12), tight dense spacing for data widgets (gap-0 to gap-px).",
+    "grid_strategy": "Control Room Bento Protocol (grid-cols-1 md:grid-cols-3 lg:grid-cols-4) with border-collapse and exposed internal grids. No floating cards—everything locks into the skeleton. Use pure HTML/Tailwind for structural layout instead of Shadcn Cards.",
+    "border_radius": "rounded-none",
+    "borders": "1px solid #09090B on primary containers, 1px solid #D4D4D8 on internal dividers. 2px solid #09090B for focused elements."
+  },
+  "components": {
+    "cards": "Go cardless. Use exposed grid skeleton. Items get border-r border-b. No soft shadows. Solid backgrounds.",
+    "buttons": "Brutalist block. High contrast text. Primary: bg-[#0033CC] text-white rounded-none hover:-translate-y-0.5 hover:shadow-[4px_4px_0px_#09090B] border border-[#0033CC] hover:border-[#09090B] transition-all. Secondary: bg-white border border-[#09090B] text-[#09090B] hover:bg-[#F4F4F5] rounded-none.",
+    "inputs": "Flat, pure geometric rectangle. 1px solid #09090B, focus:border-[#0033CC] focus:ring-1 focus:ring-[#0033CC]. rounded-none.",
+    "badges": "Square corners, mono font, tiny text. bg-[#E4E4E7] text-[#09090B] border border-[#09090B].",
+    "navigation": "Solid white background, strict hard bottom border (1px solid #09090B). Logo in Chivo Black. Links in IBM Plex Mono. Active link gets a 2px bottom border or Klein Blue text.",
+    "modals": "Use Shadcn Dialog but remove all rounded corners (rounded-none). Add an aggressive border (border-2 border-[#09090B]) and hard drop shadow (shadow-[8px_8px_0px_0px_#09090B]). Scrim should be bg-black/60 backdrop-blur-sm."
+  },
+  "motion": {
+    "hover": "Brutalist snap. -translate-y-[2px] with a hard black drop shadow (shadow-[4px_4px_0px_0px_rgba(9,9,11,1)]).",
+    "transitions": "Fast, mechanical ease-out (transition-all duration-150 ease-out)."
+  },
+  "media": {
+    "images": [
+      {
+        "category": "auth_background",
+        "url": "https://static.prod-images.emergentagent.com/jobs/fcb9356e-6bd8-4590-8093-9af875515140/images/28a4c620fd9b8569d2d1ab8446fd8a13443f3ac1bbdbe8bcfcae2ab71841fb4f.png",
+        "description": "Minimalist geometric composition for login/signup split screen background."
+      },
+      {
+        "category": "empty_state_tasks",
+        "url": "https://static.prod-images.emergentagent.com/jobs/fcb9356e-6bd8-4590-8093-9af875515140/images/149c7c56fe9d1f92d18269b01108672cb24aaf76e39fb0754c80ff7df0451256.png",
+        "description": "3D claymation style clean clipboard for when task list is empty."
+      },
+      {
+        "category": "project_placeholder",
+        "url": "https://images.unsplash.com/photo-1758518729685-f88df7890776?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA1NTZ8MHwxfHNlYXJjaHwxfHxwcm9mZXNzaW9uYWwlMjB0ZWFtJTIwbWVldGluZyUyMG9mZmljZXxlbnwwfHx8fDE3Nzc3MzY4ODV8MA&ixlib=rb-4.1.0&q=85",
+        "description": "Professional team working, to be used as default project cover."
+      }
+    ],
+    "icons": {
+      "library": "@phosphor-icons/react",
+      "style": "weight='regular' for UI, weight='fill' for active navigation."
+    }
+  },
+  "instructions_to_main_agent": [
+    "Run: yarn add @phosphor-icons/react date-fns",
+    "Add fonts via Google Fonts: Chivo (wght 400..900), IBM Plex Sans (400, 600), IBM Plex Mono (400, 600).",
+    "Implement the 'Control Room Bento Protocol' for the dashboard layout. Use pure HTML/Tailwind to create grid skeletons instead of Shadcn Card components to avoid the standard Vercel look.",
+    "Do NOT use 'Inter' for headings. Use 'Chivo'.",
+    "Strictly follow the JSON colors. Never use generic Tailwind blue/red; use the exact hex codes from this file.",
+    "Implement brutalist button hover effects globally: translate-y and hard shadow.",
+    "Make sure all interactive and informational elements have data-testid attributes (e.g., data-testid='login-button').",
+    "Status pills for tasks MUST use mono typography with high contrast colors defined in colors.status.",
+    "Use Shadcn UI for complex components (Dialog, DropdownMenu, Select) but aggressively override their default styles to remove rounded corners and soft shadows."
+  ]
+}
