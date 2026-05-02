@@ -15,10 +15,11 @@ const seed = require("./scripts/seed");
 const app = express();
 const __dirnamePath = __dirname;
 
-// ✅ Serve frontend
-app.use(express.static(path.join(__dirnamePath, "../frontend/dist")));
+// ✅ Serve frontend (FIXED PATH)
+app.use(express.static(path.join(__dirnamePath, "dist")));
 
 app.use(express.json({ limit: "1mb" }));
+
 app.use(cors({
     origin: process.env.CLIENT_URL || "*",
     credentials: true,
@@ -40,9 +41,9 @@ app.use("/api/projects", projectRoutes);
 app.use("/api/tasks", taskRoutes);
 app.use("/api", miscRoutes);
 
-// ✅ React fallback (MUST be before error handler)
+// ✅ React fallback (FIXED PATH)
 app.get("*", (req, res) => {
-    res.sendFile(path.join(__dirnamePath, "../frontend/dist", "index.html"));
+    res.sendFile(path.join(__dirnamePath, "dist", "index.html"));
 });
 
 // ✅ Error handler LAST
@@ -50,7 +51,6 @@ app.use((err, req, res, _next) => {
     const status = err.status || err.statusCode || 500;
     const message = err.message || "Internal server error";
 
-    // 🔴 DETAILED logging for debugging
     console.error("\n" + "=".repeat(60));
     console.error("❌ ERROR CAUGHT");
     console.error("=".repeat(60));
@@ -75,9 +75,12 @@ const PORT = parseInt(process.env.PORT, 10) || 5001;
 (async () => {
     try {
         await connectDB();
+
+        // ✅ Disable seed in production
         if (process.env.NODE_ENV !== "production") {
             await seed();
         }
+
         app.listen(PORT, "0.0.0.0", () =>
             console.log(`[api] running on http://0.0.0.0:${PORT}`)
         );
