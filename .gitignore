@@ -5,7 +5,6 @@ node_modules/
 .env
 
 # build folders
-dist/
 build/
 
 # logs
