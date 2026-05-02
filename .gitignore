@@ -11,3 +11,12 @@ __pycache__
 /app/test_reports
 .vscode
 .idea
+-e 
+# Environment and credential files
+.env
+.env.*
+*.env
+credentials.json
+*.pem
+*.key
+.credentials
