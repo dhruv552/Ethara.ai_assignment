@@ -1,17 +1,18 @@
 {
-  "summary": "Full backend + frontend test of Team Task Manager. All 24 backend pytest cases pass (100%). All critical frontend flows pass (login/admin+member, demo autofill, dashboard stats, project CRUD via modal, project detail members-list/add-member/task board 3 columns, create task modal, set-status pills, delete-task, role-based hiding of admin buttons, logout). No functional issues found.",
+  "summary": "Completed end-to-end testing of the Ethara Ops MERN refactor via preview URL (FastAPI shim -> Node/Express on 5001). Backend: 33/33 pytest tests pass (health, signup/login/me/logout, users, dashboard stats, projects CRUD + role checks + member management, tasks CRUD + role/assignment checks, persistence verified via GET after CUD). Frontend: Login page renders, demo admin/member buttons populate fields, sign-in routes to /dashboard, sidebar + stats grid + projects quick list render, admin can open create-project modal and create a project, project detail page loads, admin can create a task via modal, member does NOT see New Project or New Task buttons (role enforced in UI), logout clears token and redirects to /login. Zero 'emergent' or 'posthog' references found in rendered DOM/HTML (only preview URL contains emergentagent.com which is platform-injected and acceptable). Theme toggle button is present and labeled correctly (switches between 'LIGHT MODE' and 'DARK MODE'). Favicon + title ('Ethara Ops · Team Task Manager') are clean.",
   "backend_issues": {
     "critical": [],
     "minor": [
-      {"endpoint": "POST /api/auth/signup", "issue": "Email is silently lowercased by backend but response does not signal this to client; harmless but worth documenting in API contract."},
-      {"endpoint": "PUT /api/tasks/{id}", "issue": "When a member sends non-status fields, backend silently filters them and returns 200. Considered good UX but arguably should 403 on attempted privilege escalation. Non-blocking."}
+      {"endpoint": "PUT /api/tasks/:id", "issue": "When admin reassigns a task via 'assigned_to', assignee existence / project-membership is only validated on create, not on update. Invalid ObjectId in update can cast-error to 500 instead of 400/404."},
+      {"endpoint": "CORS", "issue": "CLIENT_URL=* with credentials:true — browsers reject this combo if cookies/credentials are ever used. Current frontend uses Authorization header so it works, but is brittle for production."},
+      {"endpoint": "/api/auth/logout", "issue": "Pure client-side logout (no token blacklist). Acceptable for stateless JWT but worth documenting."}
     ]
   },
   "frontend_issues": {
     "ui_bugs": [],
     "integration_issues": [],
     "design_issues": [
-      {"screen": "ProjectDetail / AddMemberRow", "issues": ["React console warning: '<span> cannot be a child of <option>'. Caused by dev-time instrumentation wrapping option children in spans. Not a functional bug but produces a hydration warning in the console."]}
+      {"screen": "Dashboard (admin, empty state)", "issues": ["'Active Projects' card shows '0 TOTAL' and empty skeleton rows even when admin has projects; dashboard may have race where stats call vs projects call render asynchronously. Observed once in automation, not reproducible on reload. Recommend showing an empty-state message or ensuring consistent render."]}
     ]
   },
   "test_report_links": [
@@ -19,26 +20,30 @@
     "/app/test_reports/pytest/pytest_results.xml"
   ],
   "action_items": [
-    "Optional: clarify API docs that emails are lowercased on signup/login.",
-    "Optional: return 403 (not 200) when a non-admin attempts to PUT /api/tasks/{id} with non-status fields.",
-    "Optional: silence the <option><span> React hydration warning surfaced by dev instrumentation in ProjectDetail AddMemberRow (not user-visible)."
+    "(Optional) Validate assignee existence on PUT /api/tasks/:id when 'assigned_to' is passed by admin; wrap ObjectId casts in try/catch to return 400 instead of 500.",
+    "(Optional, production hardening) Replace CLIENT_URL='*' with an explicit origin whitelist once the Railway web domain is known, especially if cookies are adopted.",
+    "(Nit) No 'nav-dashboard' / 'nav-projects' data-testids on sidebar links — link text works, but adding them matches the testid convention."
   ],
   "critical_code_review_comments": [
-    "server.py is 617 lines in one module; acceptable for MVP but consider splitting into routers (auth/projects/tasks/dashboard) once >700 lines.",
-    "CORS defaults to '*' with allow_credentials=True; browsers ignore credentials with wildcard but this is an insecure default. Pin origins for production.",
-    "JWT_SECRET is committed in /app/backend/.env; fine for dev, rotate before deploy.",
-    "All MongoDB reads use projection {'_id': 0} — good.",
-    "dashboard_stats.member branch uses $or of assigned_to OR project membership, so a member sees tasks for every project they belong to (not just assigned) — matches spec.",
-    "Frontend uses Bearer token in localStorage (acceptable for this MVP). Axios interceptor (not viewed) assumed to attach it — confirmed working via all successful API calls in UI tests."
+    "Auth/JWT flow is clean: bcryptjs hash (cost 10), JWT signed with sub/email/role, middleware verifies + loads user, TokenExpiredError handled separately.",
+    "Role enforcement is consistent: requireAdmin middleware on admin-only routes AND server-side re-check inside controllers (canView, isAssignee) — good defence in depth.",
+    "server.py shim correctly proxies all HTTP verbs, strips hop-by-hop headers, and gracefully shuts down the Node child process via SIGTERM/SIGKILL group kill — solid.",
+    "seed.js is idempotent (only seeds if collections empty).",
+    "No mongodb _id leaked — all models expose toPublic() which maps to 'id'.",
+    "Frontend uses import.meta.env.VITE_BACKEND_URL || process.env.REACT_APP_BACKEND_URL — correctly supports both Vite dev and the existing REACT_APP_BACKEND_URL in preview .env.",
+    "Zero 'emergent' references in rendered DOM; no posthog scripts; favicon is local SVG; title is branded.",
+    "Minor: taskController.update lets admin set assigned_to to any string (no existence check, no cast protection)."
   ],
   "updated_files": [
-    "/app/backend/tests/backend_test.py"
+    "/app/backend/tests/backend_test.py (new)",
+    "/app/test_reports/iteration_1.json (new)",
+    "/app/test_reports/pytest/pytest_results.xml (new)"
   ],
-  "success_rate": {"backend": "100% (24/24)", "frontend": "100% of planned flows"},
-  "test_credentials": "admin@example.com/admin123 (admin), member@example.com/member123 (member) — both verified working.",
-  "seed_data_creation": "Test suite creates TEST_-prefixed projects/tasks and deletes them within each test. UI test created 'UI_TEST_Project' which persists in DB (admin can clean up).",
+  "success_rate": {"backend": "100%", "frontend": "100%"},
+  "test_credentials": "admin@example.com/admin123 (admin), member@example.com/member123 (member) — read from /app/memory/test_credentials.md",
+  "seed_data_creation": "Backend seed (/app/backend/scripts/seed.js) auto-creates admin + member + 'Website Relaunch' project + 4 tasks on empty DB. Pytest creates/cleans up TEST-prefixed data. One leftover 'TEST UI Project' from interrupted UI run was left in Atlas (can be deleted manually or via DELETE /api/projects/{id}).",
   "retest_needed": false,
-  "should_main_agent_self_test": false,
-  "context_for_next_testing_agent": "Backend pytest suite at /app/backend/tests/backend_test.py (uses REACT_APP_BACKEND_URL env var). Seed admin/member accounts are auto-created on backend startup. A leftover 'UI_TEST_Project' may exist — harmless but can be deleted by admin. Role-based hiding of open-create-project / open-create-task / delete-task-* / remove-member-* / add-member-select is confirmed working for member role.",
-  "rca of the issue": "N/A — no unresolved issues."
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "Backend tests live at /app/backend/tests/backend_test.py and can be re-run with: pytest /app/backend/tests/backend_test.py -v --junitxml=/app/test_reports/pytest/pytest_results.xml. BASE_URL read from REACT_APP_BACKEND_URL env (defaults to the current preview URL). Preview proxy: FastAPI (/app/backend/server.py) on 8001 -> Node Express (/app/backend/server.js) on 5001. DO NOT edit server.py. Atlas is live. For UI, testids on task modal are data-testid='task-title' (title input, NOT a generic input[type=text]) and 'task-description'. Theme toggle is a single pill labelled 'LIGHT MODE' / 'DARK MODE' reflecting the target theme (not current).",
+  "rca of the issue": "No blocking issues found. One transient UI render race on admin dashboard (Active Projects list briefly empty) — not reproducible on reload; likely parallel stats+projects fetch. No RCA needed beyond optional defensive fixes above."
 }

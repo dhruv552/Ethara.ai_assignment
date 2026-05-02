@@ -1,0 +1,13 @@
+node_modules
+.env
+.env.local
+.env.*.local
+dist
+dist-ssr
+.DS_Store
+*.log
+__pycache__
+*.pyc
+/app/test_reports
+.vscode
+.idea

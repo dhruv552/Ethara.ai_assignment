@@ -1,43 +1,69 @@
-# Team Task Manager — PRD
+# Ethara Ops · Team Task Manager — PRD
 
 ## Original Problem Statement
-Build a full-stack Team Task Manager (originally MERN) for managing projects, assigning tasks, and tracking team progress. Features role-based access control (Admin / Member), JWT auth, and a live dashboard. Implemented as **FastAPI + React + MongoDB** at user's request (functionally identical APIs).
 
-## Architecture
-- **Backend**: FastAPI single-file (`/app/backend/server.py`) with JWT auth (PyJWT + bcrypt), Motor (async MongoDB), UUID-based document IDs, ISO datetime strings.
-- **Frontend**: React 19 + Tailwind, AuthContext + axios interceptor (Bearer token in localStorage), Swiss/Brutalist design system (Chivo + IBM Plex Sans + IBM Plex Mono, Klein-Blue accent on monochrome).
-- **Auth**: Stateless JWT (7-day TTL); `Authorization: Bearer <token>` header; idempotent admin & member seeding on startup.
+User-supplied repo: `https://github.com/dhruv552/Ethara.ai_assignment`.
 
-## User Personas
-1. **Admin** – creates projects, manages members, creates/assigns/deletes tasks, sees all stats.
-2. **Member** – sees only projects they belong to; can update status of tasks assigned to them.
+Required changes:
+1. Remove **all** mentions of the word "emergent".
+2. Convert the frontend from CRA (`react-scripts` + `craco`) to **Vite**.
+3. Connect MongoDB Atlas with the supplied URI (`mongodb+srv://…/EtharaAI`).
+4. Full functional auth — signup / login / logout / `/me` — secure.
+5. Drop the Python (FastAPI) implementation entirely.
+6. Make it pure **MERN** (MongoDB · Express · React · Node).
+7. Fully deployable (target: Railway).
+8. No visible "made by AI / Emergent" evidence.
 
-## Core Requirements (Static)
-- JWT auth with bcrypt password hashing
-- RBAC: admin vs member capability matrix from spec
-- CRUD: projects (admin write), tasks (admin write, assignee may change status)
-- Members management on a project (add/remove)
-- Dashboard stats: total tasks, in-progress, completed, overdue (`due_date < today` & status≠done), my open tasks, total projects
-- Protected routes; member can't reach admin-only UI
-- Seeded demo accounts for instant testing
+## Architecture (post-refactor, 2026-05-02)
 
-## What's Been Implemented (2026-02-15 → 2026-02-16)
-- **Backend (live)**: FastAPI on `/api/*` with JWT, RBAC, projects/tasks/dashboard endpoints. 24/24 pytest pass.
-- **Backend (parallel Node.js)**: Full Express + Mongoose backend at `/app/backend-node/` matching the README structure (config/, controllers/, middleware/, models/, routes/, server.js). Same `/api/*` contract. Boots, seeds, and authenticates correctly. Ready to push to GitHub / deploy to Railway.
-- **Frontend** restructured to README layout: `api/axios.js`, `components/{Sidebar,TaskCard,ProtectedRoute,Layout}.jsx`, `context/{AuthContext,ThemeContext}.jsx`, `pages/{Login,Signup,Dashboard,Projects,Tasks}.jsx`.
-- **Dark mode**: ThemeContext + sidebar toggle (desktop + mobile), persisted to `localStorage.ttm_theme`, applied via `html[data-theme]`. Both themes verified visually + by automated regression.
-- 100% frontend regression pass on iteration_2.
+-   **Backend** (`/app/backend`) — Express 4 + Mongoose 8 + JWT (bcryptjs) on
+    port 5001. Single entry point `server.js`. Auto-seed on first boot.
+-   **Frontend** (`/app/frontend`) — Vite 5 + React 18 + React Router 7 +
+    Tailwind 3. `@/*` alias resolves to `src/*`. Bearer token kept in
+    `localStorage.ttm_token`.
+-   **Preview shim** (`/app/backend/server.py`) — FastAPI reverse proxy that
+    spawns the Node API as a child process and forwards traffic. Exists
+    solely so the read-only supervisor `uvicorn server:app --port 8001`
+    keeps working in the Emergent preview pod. **Not part of the deployed
+    artifact** — Railway runs `node server.js` only.
 
-## Prioritized Backlog
-- **P1** Optional: return 403 instead of silent filter when member attempts to PUT non-status task fields
-- **P1** Activity log / who-did-what trail per task
-- **P2** Task comments
-- **P2** Email/notification on assignment & overdue
-- **P2** Drag-and-drop status board
-- **P2** Filter / search on Projects + Tasks
-- **P2** Avatar upload + per-user color
-- **P3** Pin origins on CORS for prod, secret rotation playbook
-- **P3** Split `server.py` into routers (auth/projects/tasks/dashboard) once >700 LoC
+## What was done in this session (2026-05-02)
+-   Replaced FastAPI backend with pure Node/Express (controllers / models /
+    routes / middleware split).
+-   Migrated frontend to Vite — new `vite.config.js`, `index.html`, `main.jsx`,
+    `App.jsx`, `postcss.config.js`. Removed `craco.config.js`,
+    `react-scripts`, `@emergentbase/visual-edits`, the `plugins/` health
+    plugin folder, the unused shadcn `components/ui/` tree, and PostHog +
+    Emergent badge scripts.
+-   Removed Python `backend/` and `backend-node/` directories.
+-   Added `.env.example`, `railway.json` for both services, top-level
+    `README.md`, `.gitignore`.
+-   Demo seed retained: admin / member accounts + starter project + 4 tasks.
 
-## Test Credentials
-See `/app/memory/test_credentials.md`.
+## Core Requirements (static)
+-   JWT auth with bcrypt (10 rounds), 7-day TTL.
+-   RBAC: admin (full) vs member (read own projects, edit status of own tasks).
+-   CRUD for projects + tasks; project members add/remove (admin only).
+-   Dashboard stats: total tasks, in-progress, completed, overdue, my open
+    tasks, total projects.
+-   Auto-seeded demo accounts so the app is usable on first boot.
+
+## Personas
+1. **Admin** — full project / task / member control.
+2. **Member** — sees only joined projects; can change status on own tasks.
+
+## Backlog
+-   **P1** Activity log / audit trail per task.
+-   **P1** Toast notifications via `sonner` for create / update / delete.
+-   **P2** Drag-and-drop status board (replace 3-button picker).
+-   **P2** Task comments + assignee notifications.
+-   **P2** Filters / search on Projects + Tasks.
+-   **P3** Avatar upload, per-user color, swappable themes.
+-   **P3** Pin CORS origins in production, secret-rotation playbook.
+
+## Deploy notes
+Railway: two services from the same repo — `backend` (root `backend`,
+start `node server.js`) and `frontend` (root `frontend`, build
+`yarn install && yarn build`, start `yarn preview --host 0.0.0.0 --port $PORT`).
+Set `MONGO_URI`, `JWT_SECRET`, `CLIENT_URL` on the API service and
+`VITE_BACKEND_URL` on the web service.
