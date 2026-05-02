@@ -23,7 +23,8 @@ export function AuthProvider({ children }) {
         try {
             const { data } = await api.get("/auth/me");
             setUser(data);
-        } catch {
+        } catch (error) {
+            console.error("[AuthContext] Failed to refresh user:", error?.response?.data?.detail || error.message);
             localStorage.removeItem("ttm_token");
             setUser(false);
         }

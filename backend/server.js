@@ -46,9 +46,28 @@ app.get("*", (req, res) => {
 });
 
 // ✅ Error handler LAST
-app.use((err, _req, res, _next) => {
-    console.error(err);
-    res.status(500).json({ detail: "Internal server error" });
+app.use((err, req, res, _next) => {
+    const status = err.status || err.statusCode || 500;
+    const message = err.message || "Internal server error";
+
+    // 🔴 DETAILED logging for debugging
+    console.error("\n" + "=".repeat(60));
+    console.error("❌ ERROR CAUGHT");
+    console.error("=".repeat(60));
+    console.error("Status:", status);
+    console.error("Message:", message);
+    console.error("URL:", req?.originalUrl);
+    console.error("Method:", req?.method);
+    console.error("Body:", req?.body);
+    console.error("User ID:", req?.user?._id);
+    console.error("\nStack:");
+    console.error(err.stack);
+    console.error("=".repeat(60) + "\n");
+
+    res.status(status).json({ 
+        detail: message,
+        ...(process.env.NODE_ENV === "development" && { stack: err.stack })
+    });
 });
 
 const PORT = parseInt(process.env.PORT, 10) || 5001;

@@ -31,6 +31,12 @@ export default function Dashboard() {
                 setStats(s.data);
                 setProjects(p.data);
                 setMyTasks(m.data);
+            } catch (error) {
+                console.error("[Dashboard] Failed to load data:", error?.response?.data?.detail || error.message);
+                // Still set loading to false so UI doesn't hang
+                if (mounted) setStats({ total_tasks: 0, completed_tasks: 0, in_progress_tasks: 0, overdue_tasks: 0, my_open_tasks: 0 });
+                if (mounted) setProjects([]);
+                if (mounted) setMyTasks([]);
             } finally {
                 if (mounted) setLoading(false);
             }
