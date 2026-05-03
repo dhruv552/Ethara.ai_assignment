@@ -64,7 +64,7 @@ app.use((err, req, res, _next) => {
     console.error(err.stack);
     console.error("=".repeat(60) + "\n");
 
-    res.status(status).json({ 
+    res.status(status).json({
         detail: message,
         ...(process.env.NODE_ENV === "development" && { stack: err.stack })
     });
