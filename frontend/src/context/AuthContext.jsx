@@ -48,22 +48,18 @@ export function AuthProvider({ children }) {
 
     // ✅ LOGIN (fixed)
 
-    const login = async (email, password) => {
+    const login = useCallback(async (email, password) => {
         try {
             const res = await api.post("/auth/login", { email, password });
     
-            console.log("LOGIN RESPONSE:", res.data);
-    
             const token = res.data.token;
     
-            if (!token) {
-                throw new Error("Token missing in response");
-            }
-    
-            // ✅ SAVE TOKEN
             localStorage.setItem("ttm_token", token);
     
-            console.log("TOKEN SAVED:", localStorage.getItem("ttm_token"));
+            console.log("TOKEN SAVED:", token);
+    
+            // ✅ IMPORTANT: fetch user after login
+            await refresh();
     
             return { ok: true };
     
@@ -71,7 +67,7 @@ export function AuthProvider({ children }) {
             console.error("LOGIN ERROR:", e);
             return { ok: false };
         }
-    };
+    }, [refresh]);
 
     // ✅ SIGNUP (fixed)
     const signup = useCallback(async (payload) => {
@@ -106,7 +102,7 @@ export function AuthProvider({ children }) {
             };
         }
     }, [refresh]);
-    
+
     // ✅ LOGOUT
     const logout = useCallback(async () => {
         try {
