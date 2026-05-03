@@ -47,19 +47,29 @@ export function AuthProvider({ children }) {
         refresh();
     }, [refresh]);
 
+
     // ✅ LOGIN (fixed)
+
     const login = useCallback(async (email, password) => {
         try {
-            const { data } = await api.post("/auth/login", { email, password });
-
-            // 🔥 Save token FIRST
+            const response = await api.post("/auth/login", { email, password });
+    
+            const data = response.data; // ✅ define data properly
+    
+            console.log("LOGIN RESPONSE:", data);
+    
+            // ✅ save token
             localStorage.setItem("ttm_token", data.token);
-
-            // 🔥 Then fetch user using token
+    
+            console.log("TOKEN SAVED:", localStorage.getItem("ttm_token"));
+    
+            // ✅ refresh user
             await refresh();
-
+    
             return { ok: true };
         } catch (e) {
+            console.error("LOGIN ERROR:", e);
+    
             return {
                 ok: false,
                 error:
