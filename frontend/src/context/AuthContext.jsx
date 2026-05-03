@@ -48,34 +48,56 @@ export function AuthProvider({ children }) {
 
     // ✅ LOGIN (fixed)
 
-    const login = useCallback(async (email, password) => {
+    const login = async (email, password) => {
         try {
-            const response = await api.post("/auth/login", { email, password });
-
-            const data = response.data; // ✅ MUST exist
-
-            localStorage.setItem("ttm_token", data.token);
-
-            await refresh();
-
+            const res = await api.post("/auth/login", { email, password });
+    
+            console.log("LOGIN RESPONSE:", res.data);
+    
+            const token = res.data.token;
+    
+            if (!token) {
+                throw new Error("Token missing in response");
+            }
+    
+            // ✅ SAVE TOKEN
+            localStorage.setItem("ttm_token", token);
+    
+            console.log("TOKEN SAVED:", localStorage.getItem("ttm_token"));
+    
             return { ok: true };
+    
         } catch (e) {
-            console.error(e);
+            console.error("LOGIN ERROR:", e);
             return { ok: false };
         }
-    }, [refresh]);
+    };
 
     // ✅ SIGNUP (fixed)
     const signup = useCallback(async (payload) => {
         try {
-            const { data } = await api.post("/auth/signup", payload);
-
-            localStorage.setItem("ttm_token", data.token);
-
+            const res = await api.post("/auth/signup", payload);
+    
+            console.log("SIGNUP RESPONSE:", res.data);
+    
+            const token = res.data?.token;
+    
+            if (!token) {
+                throw new Error("Token not found in signup response");
+            }
+    
+            // ✅ Save token
+            localStorage.setItem("ttm_token", token);
+    
+            console.log("TOKEN SAVED:", localStorage.getItem("ttm_token"));
+    
+            // ✅ Fetch user
             await refresh();
-
+    
             return { ok: true };
         } catch (e) {
+            console.error("SIGNUP ERROR:", e);
+    
             return {
                 ok: false,
                 error:
@@ -84,7 +106,7 @@ export function AuthProvider({ children }) {
             };
         }
     }, [refresh]);
-
+    
     // ✅ LOGOUT
     const logout = useCallback(async () => {
         try {
