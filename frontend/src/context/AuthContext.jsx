@@ -8,8 +8,6 @@ import {
 } from "react";
 import { api, formatApiErrorDetail } from "@/api/axios";
 
-console.log("LOGIN RESPONSE:", data);
-
 const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
@@ -53,29 +51,17 @@ export function AuthProvider({ children }) {
     const login = useCallback(async (email, password) => {
         try {
             const response = await api.post("/auth/login", { email, password });
-    
-            const data = response.data; // ✅ define data properly
-    
-            console.log("LOGIN RESPONSE:", data);
-    
-            // ✅ save token
+
+            const data = response.data; // ✅ MUST exist
+
             localStorage.setItem("ttm_token", data.token);
-    
-            console.log("TOKEN SAVED:", localStorage.getItem("ttm_token"));
-    
-            // ✅ refresh user
+
             await refresh();
-    
+
             return { ok: true };
         } catch (e) {
-            console.error("LOGIN ERROR:", e);
-    
-            return {
-                ok: false,
-                error:
-                    formatApiErrorDetail(e.response?.data?.detail) ||
-                    e.message,
-            };
+            console.error(e);
+            return { ok: false };
         }
     }, [refresh]);
 
