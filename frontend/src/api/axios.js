@@ -1,32 +1,30 @@
 import axios from "axios";
 
-const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
+const BACKEND_URL =
+    import.meta.env.VITE_BACKEND_URL ||
+    "https://etharaaiassignment-production-1531.up.railway.app";
 
 export const API_BASE = `${BACKEND_URL}/api`;
 
 const api = axios.create({
     baseURL: API_BASE,
-    withCredentials: true
 });
 
-// ✅ export BOTH ways
-export { api };
+// ✅ Attach token properly
+api.interceptors.request.use((config) => {
+    const token = localStorage.getItem("ttm_token");
 
-export default api;
+    console.log("INTERCEPTOR TOKEN:", token); // debug
 
-// ✅ add this back (required by your code)
-export function formatApiErrorDetail(detail) {
-    if (!detail) return "Something went wrong";
-
-    if (typeof detail === "string") return detail;
-
-    if (Array.isArray(detail)) {
-        return detail.map(e => e.msg || JSON.stringify(e)).join(" ");
+    if (token) {
+        config.headers = {
+            ...config.headers,
+            Authorization: `Bearer ${token}`, // 🔥 IMPORTANT
+        };
     }
 
-    if (detail.msg) return detail.msg;
+    return config;
+});
 
-    return JSON.stringify(detail);
-}
-
-console.log("ENV BACKEND:", import.meta.env.VITE_BACKEND_URL);
+export default api;
+export { api };
