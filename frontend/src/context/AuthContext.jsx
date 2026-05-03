@@ -8,6 +8,8 @@ import {
 } from "react";
 import { api, formatApiErrorDetail } from "@/api/axios";
 
+console.log("LOGIN RESPONSE:", data);
+
 const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
