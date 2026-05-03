@@ -56,8 +56,6 @@ export function AuthProvider({ children }) {
     
             localStorage.setItem("ttm_token", token);
     
-            console.log("TOKEN SAVED:", token);
-    
             // ✅ IMPORTANT: fetch user after login
             await refresh();
     
