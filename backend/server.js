@@ -9,16 +9,28 @@ const authRoutes = require("./routes/auth");
 
 const app = express();
 
-// ✅ CORS
+// ✅ CORS (robust version)
+const allowedOrigins = [
+    "http://localhost:3000",
+    "http://localhost:5173",
+    "https://ethara-ai-assignment-two.vercel.app"
+];
+
 app.use(cors({
-    origin: [
-        "http://localhost:3000",
-        "http://localhost:5173",
-        "https://ethara-ai-assignment-two.vercel.app"
-    ],
+    origin: function (origin, callback) {
+        if (!origin) return callback(null, true); // Postman, mobile
+
+        if (allowedOrigins.includes(origin)) {
+            return callback(null, true);
+        }
+
+        console.log("❌ Blocked by CORS:", origin);
+        return callback(new Error("Not allowed by CORS"));
+    },
     credentials: true,
 }));
 
+// ✅ IMPORTANT for preflight requests
 app.options("*", cors());
 
 // ✅ Middleware
@@ -30,13 +42,34 @@ app.get("/api/health", (req, res) => {
     res.json({ status: "ok" });
 });
 
+// ✅ Debug route (VERY useful)
+app.get("/api/test", (req, res) => {
+    res.json({ message: "Backend working ✅" });
+});
+
 // ✅ Routes
 app.use("/api/auth", authRoutes);
+
+// ❗ Catch unknown routes (helps debugging 404)
+app.use((req, res) => {
+    res.status(404).json({
+        error: "Route not found",
+        path: req.originalUrl
+    });
+});
+
+// ❗ Error handler (important)
+app.use((err, req, res, next) => {
+    console.error("🔥 ERROR:", err.message);
+    res.status(500).json({
+        error: err.message || "Internal Server Error"
+    });
+});
 
 // ✅ PORT
 const PORT = process.env.PORT || 5001;
 
-// ✅ Start server WITH DB connection
+// ✅ Start server AFTER DB connects
 (async () => {
     try {
         await connectDB();
