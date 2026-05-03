@@ -5,11 +5,16 @@ const cors = require("cors");
 const morgan = require("morgan");
 
 const connectDB = require("./config/db");
+
+// ✅ ROUTES (ADD THESE)
 const authRoutes = require("./routes/auth");
+const projectRoutes = require("./routes/projects");
+const taskRoutes = require("./routes/tasks");
+const miscRoutes = require("./routes/misc"); // dashboard/stats etc
 
 const app = express();
 
-// ✅ CORS (robust version)
+// ✅ CORS
 const allowedOrigins = [
     "http://localhost:3000",
     "http://localhost:5173",
@@ -18,7 +23,7 @@ const allowedOrigins = [
 
 app.use(cors({
     origin: function (origin, callback) {
-        if (!origin) return callback(null, true); // Postman, mobile
+        if (!origin) return callback(null, true);
 
         if (allowedOrigins.includes(origin)) {
             return callback(null, true);
@@ -30,27 +35,29 @@ app.use(cors({
     credentials: true,
 }));
 
-// ✅ IMPORTANT for preflight requests
 app.options("*", cors());
 
 // ✅ Middleware
 app.use(morgan("dev"));
 app.use(express.json());
 
-// ✅ Health check
+// ✅ Health
 app.get("/api/health", (req, res) => {
     res.json({ status: "ok" });
 });
 
-// ✅ Debug route (VERY useful)
+// ✅ Debug
 app.get("/api/test", (req, res) => {
     res.json({ message: "Backend working ✅" });
 });
 
-// ✅ Routes
+// ✅ ROUTES (IMPORTANT)
 app.use("/api/auth", authRoutes);
+app.use("/api/projects", projectRoutes);
+app.use("/api/tasks", taskRoutes);
+app.use("/api", miscRoutes);
 
-// ❗ Catch unknown routes (helps debugging 404)
+// ❗ 404 handler
 app.use((req, res) => {
     res.status(404).json({
         error: "Route not found",
@@ -58,7 +65,7 @@ app.use((req, res) => {
     });
 });
 
-// ❗ Error handler (important)
+// ❗ Error handler
 app.use((err, req, res, next) => {
     console.error("🔥 ERROR:", err.message);
     res.status(500).json({
@@ -69,7 +76,7 @@ app.use((err, req, res, next) => {
 // ✅ PORT
 const PORT = process.env.PORT || 5001;
 
-// ✅ Start server AFTER DB connects
+// ✅ Start server
 (async () => {
     try {
         await connectDB();
