@@ -28,3 +28,5 @@ export function formatApiErrorDetail(detail) {
 
     return JSON.stringify(detail);
 }
+
+console.log("ENV BACKEND:", import.meta.env.VITE_BACKEND_URL);
