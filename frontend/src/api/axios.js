@@ -38,5 +38,5 @@ export function formatApiErrorDetail(detail) {
 
     return JSON.stringify(detail);
 }
-export { api };
 export default api;
+export { api };
